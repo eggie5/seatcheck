@@ -3,6 +3,8 @@ require 'mechanize'
 require 'ap'
 require 'twitter'
 require 'yaml'
+require 'logger'  
+$LOG = Logger.new('seatcheck.log', 'monthly')
 
 class Course
   attr_accessor :name, :seats
@@ -13,6 +15,10 @@ class Course
   def has_seats?
     (@seats[0..1]=="0/") ? false : true
   end
+end
+
+def log(m)
+  $LOG.info(m) 
 end
 
 yaml = YAML.load_file("oauth.yaml")
@@ -51,9 +57,11 @@ end
 courses.each do |course|
   if course.has_seats?
     m="#{course.name} has #{course.seats} seats"
-    puts m
+    log m
     Twitter.direct_message_create('eggie5', m)
     Twitter.direct_message_create('withlovecassee', m)
+  else
+    log "no seats..."
   end
 end
 
