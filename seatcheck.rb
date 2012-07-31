@@ -48,9 +48,6 @@ courses=[]
   courses.push c
 end
 
-c=Course.new("FAKE CLASS", "1/45")
-courses.push c
-
 courses.each do |course|
   if course.has_seats?
     m="#{course.name} has #{course.seats} seats"
