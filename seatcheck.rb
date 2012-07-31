@@ -4,7 +4,7 @@ require 'ap'
 require 'twitter'
 require 'yaml'
 require 'logger'  
-$LOG = Logger.new('seatcheck.log', 'monthly')
+$LOG = Logger.new(File.dirname(__FILE__)+"/seatcheck.log", 'monthly')
 
 class Course
   attr_accessor :name, :seats
@@ -21,7 +21,7 @@ def log(m)
   $LOG.info(m) 
 end
 
-yaml = YAML.load_file("oauth.yaml")
+yaml = YAML.load_file(File.dirname(__FILE__)+"/oauth.yaml")
 Twitter.configure do |config|
   config.consumer_key = yaml["consumer_key"]
   config.consumer_secret = yaml["consumer_secret"]
@@ -64,5 +64,4 @@ courses.each do |course|
     log "no seats..."
   end
 end
-
 
