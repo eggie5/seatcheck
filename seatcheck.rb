@@ -3,7 +3,7 @@ require 'mechanize'
 require 'ap'
 require 'twitter'
 require 'yaml'
-require 'logger'  
+require 'logger'
 $LOG = Logger.new(File.dirname(__FILE__)+"/seatcheck.log", 'monthly')
 
 class Course
@@ -18,7 +18,8 @@ class Course
 end
 
 def log(m)
-  $LOG.info(m) 
+  $LOG.info(m)
+  p m
 end
 
 yaml = YAML.load_file(File.dirname(__FILE__)+"/oauth.yaml")
@@ -47,7 +48,7 @@ page = agent.page.link_with(:text => 'Fall 2012').click
 page = agent.page.link_with(:text => 'My Wish List').click
 
 courses=[]
-[4,5,6].each do |i|
+[2,3,4].each do |i|
   name=page.search("//tr/td/form/table/tr[#{i}]/td[2]/a").inner_text
   seats=page.search("//tr/td/form/table/tr[#{i}]/td[10]").inner_text
   c=Course.new(name, seats)
@@ -56,7 +57,7 @@ end
 
 courses.each do |course|
   if course.has_seats?
-    m="#{Time.now.to_i.to_s} - #{course.name} has #{course.seats} seats"
+    m="#{Time.now.to_i} - #{course.name} has #{course.seats} seats"
     log m
     Twitter.direct_message_create('eggie5', m)
     Twitter.direct_message_create('withlovecassee', m)
@@ -64,4 +65,3 @@ courses.each do |course|
     log "no seats..."
   end
 end
-
