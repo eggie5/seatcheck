@@ -56,7 +56,7 @@ end
 
 courses.each do |course|
   if course.has_seats?
-    m="#{course.name} has #{course.seats} seats"
+    m="#{Time.now.to_i.to_s} - #{course.name} has #{course.seats} seats"
     log m
     Twitter.direct_message_create('eggie5', m)
     Twitter.direct_message_create('withlovecassee', m)
