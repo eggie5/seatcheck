@@ -31,18 +31,12 @@ Twitter.configure do |config|
 end
 
 agent = Mechanize.new
-
 page = agent.get('http://sdsu.edu/')
-
 page = agent.page.link_with(:text => 'WebPortal').click
-
 form = page.forms.first
-
 form.user_iden=yaml["redid"]
 form.password=yaml["pass"]
-
 page = agent.submit(form)
-
 page = agent.page.link_with(:text => 'My Registration').click
 page = agent.page.link_with(:text => 'Fall 2012').click
 page = agent.page.link_with(:text => 'My Wish List').click
