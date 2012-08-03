@@ -48,7 +48,7 @@ page = agent.page.link_with(:text => 'Fall 2012').click
 page = agent.page.link_with(:text => 'My Wish List').click
 
 courses=[]
-[2,3,4].each do |i|
+[2,3].each do |i|
   name=page.search("//tr/td/form/table/tr[#{i}]/td[2]/a").inner_text
   seats=page.search("//tr/td/form/table/tr[#{i}]/td[10]").inner_text
   c=Course.new(name, seats)
@@ -59,8 +59,8 @@ courses.each do |course|
   if course.has_seats?
     m="#{Time.now.to_i} - #{course.name} has #{course.seats} seats"
     log m
-    Twitter.direct_message_create('eggie5', m)
-    Twitter.direct_message_create('withlovecassee', m)
+    #Twitter.direct_message_create('eggie5', m)
+    #Twitter.direct_message_create('withlovecassee', m)
   else
     log "no seats..."
   end
