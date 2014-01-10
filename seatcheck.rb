@@ -23,7 +23,7 @@ def log(m)
 end
 
 yaml = YAML.load_file(File.dirname(__FILE__)+"/oauth.yaml")
-Twitter.configure do |config|
+twclient = Twitter::REST::Client.new do |config|
   config.consumer_key = yaml["consumer_key"]
   config.consumer_secret = yaml["consumer_secret"]
   config.oauth_token = yaml["oauth_token"]
@@ -31,18 +31,38 @@ Twitter.configure do |config|
 end
 
 agent = Mechanize.new
+# agent.log = Logger.new('mlog.txt')
+
+#add this b/c sdsu's page returns text/plain so forece it html for mech
+agent = Mechanize.new { |a|
+  a.post_connect_hooks << lambda { |_,_,response,_|
+    if response.content_type=="text/plain"
+      response.content_type = 'text/html'
+    end
+  }
+}
+agent.follow_meta_refresh = true #follow location headers
+
+
+
 page = agent.get('http://sdsu.edu/')
 page = agent.page.link_with(:text => 'WebPortal').click
+page = page.link_with(:text=>"Log In").click
 form = page.forms.first
-form.user_iden=yaml["redid"]
-form.password=yaml["pass"]
+form.userName=yaml["redid"]
+form.userPassword=yaml["pass"]
+form["login"]="Sign In"
 page = agent.submit(form)
-page = agent.page.link_with(:text => 'My Registration').click
-page = agent.page.link_with(:text => 'Fall 2012').click
-page = agent.page.link_with(:text => 'My Wish List').click
+
+
+
+page = page.link_with(:text => 'My Registration').click
+page = page.link_with(:text => 'Spring 2014').click
+page = page.link_with(:text => 'My Wish List').click
+
 
 courses=[]
-[2,3].each do |i|
+[2].each do |i|
   name=page.search("//tr/td/form/table/tr[#{i}]/td[2]/a").inner_text
   seats=page.search("//tr/td/form/table/tr[#{i}]/td[10]").inner_text
   c=Course.new(name, seats)
@@ -53,8 +73,8 @@ courses.each do |course|
   if course.has_seats?
     m="#{Time.now.to_i} - #{course.name} has #{course.seats} seats"
     log m
-    Twitter.direct_message_create('eggie5', m)
-    Twitter.direct_message_create('withlovecassee', m)
+    twclient.create_direct_message('eggie5', m)
+    twclient.create_direct_message('withlovecassee', m)
   else
     log "no seats..."
   end
