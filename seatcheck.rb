@@ -7,7 +7,7 @@ require 'logger'
 $LOG = Logger.new(File.dirname(__FILE__)+"/seatcheck.log", 'monthly')
 
 class Course
-  attr_accessor :name, :seats
+  attr_accessor :name, :seats, :add_link
   def initialize(name,seats)
     @name=name
     @seats=seats
@@ -63,19 +63,35 @@ page = page.link_with(:text => 'My Wish List').click
 
 courses=[]
 [2].each do |i|
+  table_row=page.search("//tr/td/form/table/tr[#{i}]")
+  row_links=page.search("//tr/td/form/table/tr[2]//td/a").collect{|node| Mechanize::Page::Link.new(node, agent, page)}
+  add_link=row_links.select{|l| l.text=="Add"}[0]
   name=page.search("//tr/td/form/table/tr[#{i}]/td[2]/a").inner_text
   seats=page.search("//tr/td/form/table/tr[#{i}]/td[10]").inner_text
   c=Course.new(name, seats)
+  c.add_link=add_link
   courses.push c
 end
 
 courses.each do |course|
   if course.has_seats?
-    m="#{Time.now.to_i} - #{course.name} has #{course.seats} seats"
+    m="#{Time.now.to_i} - #{course.name} has #{course.seats} seats, attemping to auto-reg"
     log m
     twclient.create_direct_message('eggie5', m)
     twclient.create_direct_message('withlovecassee', m)
+    
+    #attempt to auto-add
+    page = course.add_link.click
+    captcha_code=page.search("//span[contains(@style,'green')]").inner_text.delete(" ") #find code colored in green
+    form=page.forms.first
+    form.p_captcha_entry=captcha_code
+    page = agent.submit(form)
+    pp failed_text=page.search("//font[contains(@color,'red')]").inner_text
+    pp status_message = page.search("//td[contains(@bgcolor, '#ffffcc')]").inner_text
+    log "auto reg status: #{failed_text}, #{status_message}"
   else
     log "no seats..."
   end
+
+
 end
